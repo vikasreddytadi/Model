@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using model.Models;
 using model.Data;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace model
 {
@@ -17,7 +18,7 @@ namespace model
                 .AddJsonFile("appSettings.json")
                 .Build();
 
-            // DapperMapper dapper = new DapperMapper();
+            DapperMapper dapper = new DapperMapper();
 
             // DateTime result = dapper.SingleRow<DateTime>(@"Select GETDATE()");
 
@@ -29,8 +30,6 @@ namespace model
 
             // Console.WriteLine(final); //returns number of rows effected
 
-
-
             // IEnumerable<num> finalFectch = dapper.MultiRow<num>(@"Select * from num");
 
             // foreach (num mynum in finalFectch)
@@ -38,21 +37,48 @@ namespace model
             //     Console.WriteLine(mynum.id + " , " + mynum.name);
             // }
 
-            EntityFramework ef = new EntityFramework(config);
+            // EntityFramework ef = new EntityFramework(config);
 
-            num nums = new num() { name = "b" };
+            // num nums = new num() { name = "b" };
 
-            ef.Add(nums);
-            ef.SaveChanges();
+            // ef.Add(nums);
+            // ef.SaveChanges();
 
-            IEnumerable<num>? num1 = ef.num?.ToList<num>();
-            foreach (num SingleNum in num1)
+            // IEnumerable<num>? num1 = ef.num?.ToList<num>();
+            // foreach (num SingleNum in num1)
+            // {
+            //     Console.WriteLine(SingleNum.name);
+            // }
+
+            // Computer myComputer = new Computer() { Processor = "Intel I7", Ram = 8 };
+            // Console.WriteLine(myComputer.Processor);
+
+            string tempJson = File.ReadAllText("temp.json");
+
+            // Console.WriteLine(tempJson);
+
+            JsonSerializerOptions options = new JsonSerializerOptions()
             {
-                Console.WriteLine(SingleNum.name);
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            IEnumerable<num>? loadData = JsonSerializer.Deserialize<IEnumerable<num>>(
+                tempJson,
+                options
+            );
+
+            if (loadData != null)
+            {
+                foreach (num nums in loadData)
+                {
+                    // Console.WriteLine("insert into num values(" + nums.name + ")");
+                    dapper.ExecuteQuery(@"insert into num values('" + nums.name + "')");
+                }
             }
 
-            Computer myComputer = new Computer() { Processor = "Intel I7", Ram = 8 };
-            // Console.WriteLine(myComputer.Processor);
+            string serializedJson = JsonSerializer.Serialize(loadData,options);
+
+            File.WriteAllText("serializedJson.txt",serializedJson);
         }
     }
 }

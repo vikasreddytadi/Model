@@ -12,7 +12,7 @@ namespace model.Data
     public class DapperMapper
     {
         private string _connectionString =
-            "Server=PTDELL0069\\SQLEXPRESS;Database=dateEntry;Trusted_Connection=True;TrustServerCertificate=True";
+            "Server=PTDELL0069\\SQLEXPRESS;Database=temp;Trusted_Connection=True;TrustServerCertificate=True";
 
         public IDbConnection dbConnection;
 
