@@ -6,6 +6,8 @@ using model.Models;
 using model.Data;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using AutoMapper;
+using AutoMapper.Execution;
 
 namespace model
 {
@@ -62,23 +64,43 @@ namespace model
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            IEnumerable<num>? loadData = JsonSerializer.Deserialize<IEnumerable<num>>(
+            IEnumerable<numDto>? loadData = JsonSerializer.Deserialize<IEnumerable<numDto>>(
                 tempJson,
                 options
             );
 
-            if (loadData != null)
-            {
-                foreach (num nums in loadData)
+            // We need to set up mapper configuration
+            var config1 = new MapperConfiguration(
+                (cfg) =>
                 {
-                    // Console.WriteLine("insert into num values(" + nums.name + ")");
-                    dapper.ExecuteQuery(@"insert into num values('" + nums.name + "')");
+                    cfg.CreateMap<numDto, num>()
+                        .ForMember(dest => dest.name, opt => opt.MapFrom(src => src.name));
                 }
+            );
+
+            // create mapper with above config
+            IMapper mapper = config1.CreateMapper();
+
+            // here we will map two objects
+            IEnumerable<num> mappedData = mapper.Map<IEnumerable<num>>(loadData);
+
+            foreach (num mynum in mappedData)
+            {
+                Console.WriteLine(mynum.name);
             }
 
-            string serializedJson = JsonSerializer.Serialize(loadData,options);
+            // if (loadData != null)
+            // {
+            //     foreach (num nums in loadData)
+            //     {
+            //         // Console.WriteLine("insert into num values(" + nums.name + ")");
+            //         dapper.ExecuteQuery(@"insert into num values('" + nums.name + "')");
+            //     }
+            // }
 
-            File.WriteAllText("serializedJson.txt",serializedJson);
+            // string serializedJson = JsonSerializer.Serialize(loadData,options);
+
+            // File.WriteAllText("serializedJson.txt",serializedJson);
         }
     }
 }
